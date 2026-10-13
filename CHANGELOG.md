@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.7] - 2026-10-13
+
+### Fixed
+- **No model received tools or the system prompt under Pi 0.99.** The 0.99 agent loop stops passing `context.systemPrompt`/`context.tools` to `streamSimple` — both are folded into system messages in the transcript (`toolsAdded`/`toolsRemoved` deltas replayed in order). The streaming paths still read the legacy shorthand fields, which are always empty, so every Vertex model (Gemini, Claude, MaaS) ran as a bare text completion: no function declarations, no Pi system prompt. Visible with any agentic prompt; the model reports it has "zero tools attached". `streamVertex` now resolves the prompt and current tool set from the transcript (via pi-ai's `getCurrentSystemMessage`/`getCurrentTools`) before dispatching; explicitly passed fields still win.
+
 ## [1.2.6] - 2026-10-13
 
 ### Added
