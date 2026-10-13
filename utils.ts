@@ -80,7 +80,9 @@ function supportsMultimodalFunctionResponse(modelId: string): boolean {
  */
 export function convertToGeminiMessages(messages: Message[], modelId: string): GeminiContent[] {
   const result: GeminiContent[] = [];
-  const isGemini3 = modelId.startsWith("gemini-3");
+  // Gemini 3 and 4 require thoughtSignature on all functionCall parts.
+  const requiresThoughtSignature =
+    modelId.startsWith("gemini-3") || modelId.startsWith("gemini-4");
   let pendingToolCalls: ToolCall[] = [];
   let existingToolResultIds = new Set<string>();
 
@@ -225,8 +227,8 @@ export function convertToGeminiMessages(messages: Message[], modelId: string): G
           };
           if (thoughtSig) {
             part.thoughtSignature = thoughtSig;
-          } else if (isGemini3) {
-            // Gemini 3 requires thoughtSignature on all functionCall parts.
+          } else if (requiresThoughtSignature) {
+            // Gemini 3/4 require thoughtSignature on all functionCall parts.
             // For cross-provider tool calls (or rare same-provider calls without signatures),
             // use the documented escape hatch to bypass validation.
             // See: https://docs.cloud.google.com/vertex-ai/generative-ai/docs/thought-signatures

@@ -3,12 +3,36 @@
  * Source: https://docs.cloud.google.com/vertex-ai/generative-ai/docs/models
  * Pricing: https://cloud.google.com/vertex-ai/generative-ai/pricing
  * All prices per 1M tokens (standard tier, <= 200K input tokens)
- * Verified against the Vertex AI model catalog on 2026-09-03.
+ * Verified against the Vertex AI model catalog on 2026-10-13.
  */
 
 import type { VertexModelConfig } from "../types.js";
 
 export const GEMINI_MODELS: VertexModelConfig[] = [
+  // --- Gemini 4 (GA, 2026-10-13) ---
+  // Introductory pricing through 2026-11-30; rises to $4.00/$20.00 after.
+  // Supports "long decode" up to 1M output tokens; 65536 is the default
+  // synchronous limit, consistent with the rest of the catalog.
+  {
+    id: "gemini-4-argon",
+    name: "Gemini 4 Argon",
+    apiId: "gemini-4-argon",
+    publisher: "google",
+    endpointType: "gemini",
+    contextWindow: 1048576,
+    maxTokens: 65536,
+    input: ["text", "image"],
+    reasoning: true,
+    tools: true,
+    cost: {
+      input: 2.00,
+      output: 10.00,
+      cacheRead: 0.10,
+      cacheWrite: 0,
+    },
+    region: "global",
+  },
+
   // --- Gemini 3.8 (GA, 2026-09-02) ---
   {
     id: "gemini-3.8-flash",

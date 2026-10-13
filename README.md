@@ -15,8 +15,8 @@ Set your GCP project and credentials. Vertex AI models (Gemini, Claude, Llama, D
 
 ## Features
 
-- **55 models** across 4 categories:
-  - **Gemini** (11): 3.8 Flash, 3.7 Flash, 3.6 Flash, 3.5 Flash, 3.5 Flash-Lite, 3.1 Pro, 3.1 Flash-Lite, 3 Flash, 2.5 Pro, 2.5 Flash, 2.5 Flash-Lite
+- **56 models** across 4 categories:
+  - **Gemini** (12): 4 Argon, 3.8 Flash, 3.7 Flash, 3.6 Flash, 3.5 Flash, 3.5 Flash-Lite, 3.1 Pro, 3.1 Flash-Lite, 3 Flash, 2.5 Pro, 2.5 Flash, 2.5 Flash-Lite
   - **Claude** (17): Opus 5.5, Sonnet 5.5, Fable 5.1, Opus 5, Sonnet 5, Fable 5, Opus 4.8, Opus 4.7, Opus 4.6, Sonnet 4.6, Opus/Sonnet/Haiku 4.5, Opus 4.1, Opus 4, Sonnet 4, 3.5 Sonnet v2
   - **Llama** (3): 4 Maverick, 4 Scout, 3.3 70B
   - **Other MaaS** (24): Grok 4.6, Grok 4.3, Grok 4.20, Grok 4.1 Fast, Gemma, Mistral, DeepSeek, Qwen, OpenAI GPT-OSS, Kimi, MiniMax, GLM 5.2, GLM
@@ -94,6 +94,7 @@ pi --provider vertex --model grok-4.6
 pi --provider vertex --model grok-4.3
 pi --provider vertex --model glm-5.2
 pi --provider vertex --model gemini-3.8-flash
+pi --provider vertex --model gemini-4-argon
 pi --provider vertex --model gemini-2.5-pro
 pi --provider vertex --model llama-4-maverick
 pi --provider vertex --model deepseek-v3.2
@@ -126,6 +127,7 @@ alias pil="GOOGLE_CLOUD_PROJECT=your-project pi --provider vertex --model llama-
 
 | Model | Context | Max Tokens | Input | Reasoning | Price (in/out) |
 |-------|---------|------------|-------|-----------|----------------|
+| gemini-4-argon | 1M | 65,536 | text, image | ✅ | $2.00/$10.00 |
 | gemini-3.8-flash | 1M | 65,536 | text, image | ✅ | $0.75/$3.75 |
 | gemini-3.7-flash | 1M | 65,536 | text, image | ✅ | $0.75/$3.75 |
 | gemini-3.6-flash | 1M | 65,536 | text, image | ✅ | $1.50/$7.50 |
@@ -137,6 +139,8 @@ alias pil="GOOGLE_CLOUD_PROJECT=your-project pi --provider vertex --model llama-
 | gemini-2.5-pro | 1M | 65,536 | text, image | ✅ | $1.25/$10.00 |
 | gemini-2.5-flash | 1M | 65,536 | text, image | ✅ | $0.30/$2.50 |
 | gemini-2.5-flash-lite | 1M | 65,536 | text, image | ✅ | $0.10/$0.40 |
+
+`gemini-4-argon` uses introductory pricing of $2.00/$10.00 per 1M tokens (cached input $0.10) through 2026-11-30, rising to $4.00/$20.00 after. It supports "long decode" up to 1M output tokens; this extension uses the default 65,536 synchronous limit.
 
 `gemini-3.1-pro` is still a Preview offering on Vertex (API id `gemini-3.1-pro-preview`); everything else in this table is GA.
 

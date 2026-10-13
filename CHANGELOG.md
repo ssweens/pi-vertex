@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.6] - 2026-10-13
+
+### Added
+- **Gemini 4 Argon** (`gemini-4-argon`) — GA on 2026-10-13, Google's new flagship reasoning model. 1M context, 65,536 max output (1M with long decode; the default synchronous limit is used), reasoning via low/medium/high thinking levels, tools, global Vertex endpoint. Introductory pricing is $2.00/$10.00 per 1M input/output tokens with $0.10/1M cached input tokens through 2026-11-30, rising to $4.00/$20.00 after.
+
+### Changed
+- Thinking configuration now treats Gemini 4 like Gemini 3: thinking levels instead of Gemini 2.5 budgets, `thinkingConfig` omitted when no reasoning effort is given so Argon uses its native default, and `minimal` effort floors to `low` (Argon does not support MINIMAL).
+- Cross-provider tool call replay to Gemini 4 models now uses the `skip_thought_signature_validator` escape hatch, matching Gemini 3's functionCall signature requirement.
+
 ## [1.2.5] - 2026-09-29
 
 ### Added
