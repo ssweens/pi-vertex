@@ -5,7 +5,6 @@
  * Resolution order for each value: config file → env var → default
  */
 
-import { GoogleAuth } from "google-auth-library";
 import { existsSync } from "fs";
 import { join } from "path";
 import { homedir } from "os";
@@ -84,6 +83,7 @@ export function getAuthConfig(preferredRegion?: string): AuthConfig {
  */
 export async function getAccessToken(): Promise<string> {
   const config = loadConfig();
+  const { GoogleAuth } = await import("google-auth-library");
   const auth = new GoogleAuth({
     scopes: ["https://www.googleapis.com/auth/cloud-platform"],
     ...(config.googleApplicationCredentials ? { keyFile: config.googleApplicationCredentials } : {}),

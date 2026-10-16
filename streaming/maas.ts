@@ -13,10 +13,6 @@ import {
   type Model,
   calculateCost,
 } from "@earendil-works/pi-ai";
-// Pi 0.99 moved the per-API stream functions off the pi-ai root. The compat
-// entry is what Pi's extension loader maps pi-ai to, so it resolves at runtime.
-import { openAICompletionsApi } from "@earendil-works/pi-ai/compat";
-import { AnthropicVertex } from "@anthropic-ai/vertex-sdk";
 
 function mapAnthropicEffort(reasoning?: string): "low" | "medium" | "high" | "max" | undefined {
   if (!reasoning) return undefined;
@@ -54,6 +50,7 @@ async function streamAnthropic(
 ): Promise<void> {
   const location = resolveLocation(model.region);
   const auth = getAuthConfig(location);
+  const { AnthropicVertex } = await import("@anthropic-ai/vertex-sdk");
 
   // Use regional pricing when the resolved endpoint is not the global one.
   // Models without costRegional (e.g. Opus 4.1, Sonnet 4) have uniform pricing.
@@ -375,6 +372,9 @@ export function streamMaaS(
         },
       };
 
+      // Pi 0.99 moved per-API stream functions off the pi-ai root.
+      // Pi's extension loader maps the compat entry at runtime.
+      const { openAICompletionsApi } = await import("@earendil-works/pi-ai/compat");
       const innerStream = openAICompletionsApi().streamSimple(modelForPi, context as any, {
         ...options,
         apiKey: accessToken,

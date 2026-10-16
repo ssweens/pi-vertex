@@ -8,7 +8,6 @@
  * - Usage tracking including thinking tokens
  */
 
-import { GoogleGenAI, FinishReason, ThinkingLevel } from "@google/genai";
 import type { VertexModelConfig, Context, StreamOptions, AssistantMessage } from "../types.js";
 import { getAuthConfig, resolveLocation } from "../auth.js";
 import { sanitizeText, convertToGeminiMessages, convertToolsForGemini, retainThoughtSignature, calculateCost } from "../utils.js";
@@ -17,17 +16,10 @@ import { createAssistantMessageEventStream, type AssistantMessageEventStream, ty
 // Module-level counter for generating unique tool call IDs (matches pi-mono pattern)
 let toolCallCounter = 0;
 
-const THINKING_LEVEL_MAP: Record<string, ThinkingLevel> = {
-  minimal: ThinkingLevel.MINIMAL,
-  low: ThinkingLevel.LOW,
-  medium: ThinkingLevel.MEDIUM,
-  high: ThinkingLevel.HIGH,
-};
-
 interface GeminiThinkingConfig {
   includeThoughts?: boolean;
   thinkingBudget?: number;
-  thinkingLevel?: ThinkingLevel;
+  thinkingLevel?: string;
 }
 
 function isGemini3ProModel(modelId: string): boolean {
@@ -51,22 +43,30 @@ function usesThinkingLevels(apiId: string): boolean {
   return apiId.startsWith("gemini-3") || apiId.startsWith("gemini-4");
 }
 
-function getGeminiThinkingLevel(effort: string, modelId: string): ThinkingLevel {
+function getGeminiThinkingLevel(
+  effort: string,
+  modelId: string,
+  levels: { LOW: string; MEDIUM: string; HIGH: string },
+  levelByEffort: Record<string, string>,
+): string {
   if (isGemini3ProModel(modelId) || isGemini4ArgonModel(modelId) ||
       (isGemini38FlashModel(modelId) && effort === "minimal")) {
     // Gemini 3 Pro, Gemini 4 Argon, and Gemini 3.8 Flash do not support MINIMAL — floor to LOW
-    if (effort === "minimal" || effort === "low") return ThinkingLevel.LOW;
-    if (effort === "medium") return ThinkingLevel.MEDIUM;
-    return ThinkingLevel.HIGH;
+    if (effort === "minimal" || effort === "low") return levels.LOW;
+    if (effort === "medium") return levels.MEDIUM;
+    return levels.HIGH;
   }
-  return THINKING_LEVEL_MAP[effort];
+  return levelByEffort[effort];
 }
 
-function mapGeminiStopReason(reason: string): "stop" | "length" | "toolUse" | "error" {
+function mapGeminiStopReason(
+  reason: string,
+  finishReason: { STOP: string; MAX_TOKENS: string },
+): "stop" | "length" | "toolUse" | "error" {
   switch (reason) {
-    case FinishReason.STOP:
+    case finishReason.STOP:
       return "stop";
-    case FinishReason.MAX_TOKENS:
+    case finishReason.MAX_TOKENS:
       return "length";
     default:
       return "error";
@@ -103,6 +103,13 @@ export function streamGemini(
       // Priority: config file > env var > model region > default
       const location = resolveLocation(model.region);
       const auth = getAuthConfig(location);
+      const { GoogleGenAI, FinishReason, ThinkingLevel } = await import("@google/genai");
+      const thinkingLevelByEffort = {
+        minimal: ThinkingLevel.MINIMAL,
+        low: ThinkingLevel.LOW,
+        medium: ThinkingLevel.MEDIUM,
+        high: ThinkingLevel.HIGH,
+      };
 
       // Create client with explicit API version (matches pi-mono)
       const client = new GoogleGenAI({
@@ -142,7 +149,7 @@ export function streamGemini(
 
           if (usesLevels) {
             // Gemini 3 Pro doesn't support MINIMAL; Flash models do.
-            thinkingConfig.thinkingLevel = getGeminiThinkingLevel(effort, model.apiId);
+            thinkingConfig.thinkingLevel = getGeminiThinkingLevel(effort, model.apiId, ThinkingLevel, thinkingLevelByEffort);
           } else {
             // Gemini 2.5 models use thinking budgets (token counts)
             const budgets: Record<string, number> = {
@@ -278,7 +285,7 @@ export function streamGemini(
 
         // Handle finish reason
         if (candidate?.finishReason) {
-          output.stopReason = mapGeminiStopReason(candidate.finishReason);
+          output.stopReason = mapGeminiStopReason(candidate.finishReason, FinishReason);
           if (candidate.finishReason === FinishReason.SAFETY) {
             output.errorMessage = "Content blocked by safety filters";
           }
